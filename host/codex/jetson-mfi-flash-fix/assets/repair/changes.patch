@@ -1,0 +1,468 @@
+--- a/recomputer-orin-super-j401.conf
++++ b/recomputer-orin-super-j401.conf
+@@ -26,7 +26,17 @@
+ # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ 
+-source "${LDK_DIR}/p3768-0000-p3767-0000-a0.conf";
++if [ -f "${LDK_DIR}/p3768-0000-p3767-0000-a0.conf" ]; then
++	source "${LDK_DIR}/p3768-0000-p3767-0000-a0.conf";
++elif [ -f "${LDK_DIR}/bootloader/flashcmd.txt" ] &&
++     [ -f "${LDK_DIR}/tools/kernel_flash/initrdflashparam.txt" ]; then
++	# Prebuilt MFI packages omit the BSP board config. Flash-only uses the
++	# packaged images; the common config supplies CHIPID for the host tools.
++	source "${LDK_DIR}/p3767.conf.common";
++else
++	echo "Error: missing p3768-0000-p3767-0000-a0.conf" >&2;
++	return 1;
++fi
+ 
+ p3767_super_overlay()
+ {
+--- a/tools/kernel_flash/images/l4t_flash_from_kernel.sh
++++ b/tools/kernel_flash/images/l4t_flash_from_kernel.sh
+@@ -322,7 +322,7 @@
+ 	if [[ "${host_mode}" = "0" ]]; then
+ 		echo "${device_name}"
+ 	else
+-		disk_name=$(get_disk_name "$(basename "${device_name}")")
++		disk_name=$(get_disk_name "${device_name##*/}")
+ 		shopt -s extglob
+ 		part_num=${device_name##"${disk_name}"}
+ 		part_num=${part_num##"${part_num%%+([[:digit:]])}"}
+@@ -360,7 +360,7 @@
+ 		ekb_filename="$(find "${COMMON_IMAGES_DIR}/${INTERNAL}/ekb_db" -type f -name "*${device_sn}*" | head -1)"
+ 		sha1_chksum=$(sha1sum "${ekb_filename}" | cut -d\  -f 1)
+ 		file_size="$(stat --printf="%s" "${ekb_filename}")"
+-		file_name="ekb_db/$(basename "${ekb_filename}")"
++		file_name="ekb_db/${ekb_filename##*/}"
+ 	fi
+ 
+ 	# check if -k <target_partname> is specified
+@@ -562,10 +562,12 @@
+ 	if is_sparse_image "${file_image}"; then
+ 		if [ -n "${device}" ];then
+ 			local device_name
++			local partition
+ 			IFS='-' read -r -a attribute <<< "${attributes}"
+ 			entry_id="${attribute[2]}"
+-			device_name=$(basename "${device}")
+-			write_sparse_image "/dev/$(get_partition "${device_name}" "${entry_id}")" "${file_image}"
++			device_name="${device##*/}"
++			partition=$(get_partition "${device_name}" "${entry_id}") || return 1
++			write_sparse_image "/dev/${partition}" "${file_image}" || return 1
+ 			return 0
+ 		fi
+ 	fi
+@@ -574,10 +576,12 @@
+ 	if is_zstd_data "${file_image}"; then
+ 		if [ -n "${device}" ];then
+ 			local device_name
++			local partition
+ 			IFS='-' read -r -a attribute <<< "${attributes}"
+ 			entry_id="${attribute[2]}"
+-			device_name=$(basename "${device}")
+-			write_zstd_image "/dev/$(get_partition "${device_name}" "${entry_id}")" "${file_image}"
++			device_name="${device##*/}"
++			partition=$(get_partition "${device_name}" "${entry_id}") || return 1
++			write_zstd_image "/dev/${partition}" "${file_image}" || return 1
+ 			sync
+ 			return 0
+ 		fi
+@@ -742,6 +746,15 @@
+     base="${device##*/}"       # e.g., "sda" from "/dev/sda"
+     dir="${device%$base}"      # e.g., "/dev/" or ""
+ 
++    if [[ -z "$base" ]]; then
++        log_error "Cannot get partition for an empty device name"
++        return 1
++    fi
++    if [[ -n "$count" && ! "$count" =~ ^[0-9]+$ ]]; then
++        log_error "Invalid partition number: $count"
++        return 1
++    fi
++
+     # 1) If a partition was provided, extract the disk correctly
+     if   [[ "$base" =~ ^(nvme[0-9]+n[0-9]+)p([0-9]+)$ ]]; then
+         disk="${BASH_REMATCH[1]}"; sep="p"
+@@ -769,7 +782,7 @@
+     fi
+ 
+     # If count is empty or 0, return the disk itself
+-    if [[ -z "$count" || "$count" -eq 0 ]]; then
++    if [[ -z "$count" || "$count" =~ ^0+$ ]]; then
+         printf '%s%s\n' "$dir" "$disk"
+         return
+     fi
+@@ -782,34 +795,46 @@
+ 
+ function erase_partition()
+ {
+-	# sparse file
+-	if [ "${host_mode}" = "0" ]; then
+-		log_debug "blkdiscard -f ${1}"
+-		if ! blkdiscard -f "${1}"; then
+-			log_error "Cannot erase using blkdiscard. Write zero to partition ${1}"
+-			log_error "dd if=/dev/zero of=${1}"
+-			dd if=/dev/zero of="${1}" status=progress oflag=direct
+-		fi
+-	else
+-		local dev_name
+-		dev_name="/dev/$(get_dev_name_on_target "$(basename "${1}")")"
+-		if [ "${direct}" = 1 ]; then
+-			local option=()
+-			if blkdiscard -h | grep -q "\-f,"; then
+-				option=("-f")
+-			fi
+-			if ! blkdiscard "${option[@]}" "${dev_name}"; then
+-				log_error "Cannot erase using blkdiscard. Write zero to partition ${dev_name}"
+-				log_error "dd if=/dev/zero of=${dev_name}"
+-				dd if=/dev/zero of="${dev_name}" status=progress oflag=direct
+-			fi
+-		else
++	local dev_name="${1}"
++	local device_size
++	local option=("-f")
++	if [ "${host_mode}" != "0" ]; then
++		dev_name="/dev/$(get_dev_name_on_target "${1##*/}")" || return 1
++		if [ "${direct}" != 1 ]; then
+ 			run_commmand_on_target "${net}" \
+-			"if ! blkdiscard -f ${dev_name}; then
+-			echo Cannot erase before writing sparse image. Write zero to partition ${dev_name};
+-			dd if=/dev/zero of=${dev_name} status=progress oflag=direct; fi";
++			"if [ ! -b '${dev_name}' ]; then
++				echo 'Not a block device: ${dev_name}' >&2; exit 1;
++			fi;
++			if ! blkdiscard -f '${dev_name}'; then
++				device_size=\$(blockdev --getsize64 '${dev_name}') || exit 1;
++				case \$device_size in ''|*[!0-9]*|0) exit 1;; esac;
++				dd if=/dev/zero of='${dev_name}' bs=1M count=\$device_size \
++					iflag=count_bytes status=progress oflag=direct;
++			fi";
++			return "${?}"
++		fi
++		option=()
++		if blkdiscard -h | grep -q "\-f,"; then
++			option=("-f")
+ 		fi
+ 	fi
++
++	# Never let dd create a regular file in /dev when a device name is wrong.
++	if [ ! -b "${dev_name}" ]; then
++		log_error "Not a block device: ${dev_name}"
++		return 1
++	fi
++	log_debug "blkdiscard ${option[*]} ${dev_name}"
++	if ! blkdiscard "${option[@]}" "${dev_name}"; then
++		device_size=$(blockdev --getsize64 "${dev_name}") || return 1
++		if [[ ! "${device_size}" =~ ^[1-9][0-9]*$ ]]; then
++			log_error "Invalid block device size: ${device_size}"
++			return 1
++		fi
++		log_warning "Cannot erase using blkdiscard. Write zero to partition ${dev_name}"
++		dd if=/dev/zero of="${dev_name}" bs=1M count="${device_size}" \
++			iflag=count_bytes status=progress oflag=direct || return 1
++	fi
+ }
+ 
+ # function to write a sparse image to a dev node
+@@ -817,7 +842,6 @@
+ function write_sparse_image
+ {
+ 
+-	erase_partition "${1}"
+ 	local simg2img="nvsimg2img"
+ 
+ 	if ! command -v "${simg2img}" &> /dev/null; then
+@@ -833,9 +857,9 @@
+ 			exit 1
+ 		fi;
+ 	fi;
++	erase_partition "${1}" || return 1
+ 	echo "${simg2img} ${2} ${1}"
+-	"${simg2img}" "${2}" "${1}"
+-	chkerr "${simg2img} ${2} ${1} failed"
++	"${simg2img}" "${2}" "${1}" || return 1
+ 	sync
+ 	return
+ }
+@@ -845,14 +869,16 @@
+ # first argument is the destination dev node, second argument is the file to write
+ function write_zstd_image
+ {
+-	erase_partition "${1}"
+ 	if ! command -v "zstd" &> /dev/null; then
+ 		print_at_end "ERROR: cannot find zstd. You might have set up your flashing env wrong"
+ 		exit 1
+ 	fi;
++	erase_partition "${1}" || return 1
+ 	log_debug "zstd -T0 -d ${2} -c | dd of=${1} conv=sparse status=progress bs=4096"
+-	zstd -T0 -d "${2}" -c | dd of="${1}" conv=sparse status=progress bs=4096
+-	chkerr "zstd -T0 -d ${2} -c | dd of=${1} conv=sparse status=progress bs=4096 failed"
++	if ! zstd -T0 -d "${2}" -c | dd of="${1}" conv=sparse status=progress bs=4096; then
++		log_error "Failed to write ${2} to ${1}"
++		return 1
++	fi
+ 	sync
+ 	return
+ }
+@@ -1022,7 +1048,7 @@
+ 		return 1
+ 	fi
+ 
+-	if [ ! -e "${APP_partition}" ];then
++	if [ ! -b "${APP_partition}" ];then
+ 		log_error "${part_name} paritiion ${APP_partition} is not found !!!"
+ 		return 1
+ 	fi
+@@ -1036,12 +1062,12 @@
+ 	# Using magic to check if this is a sparse file
+ 	if is_sparse_image "${file_image}"; then
+ 		write_sparse_image "${APP_partition}" "${file_image}"
+-		return 0
++		return "${?}"
+ 	fi
+ 
+ 	if is_zstd_data "${file_image}" && [[ "${file_image}" == *.zst ]]; then
+ 		write_zstd_image "${APP_partition}" "${file_image}"
+-		return 0
++		return "${?}"
+ 	fi
+ 
+ 	# Check if this is a zstd compressed data
+--- a/tools/kernel_flash/l4t_flash_from_kernel.sh
++++ b/tools/kernel_flash/l4t_flash_from_kernel.sh
+@@ -322,7 +322,7 @@
+ 	if [[ "${host_mode}" = "0" ]]; then
+ 		echo "${device_name}"
+ 	else
+-		disk_name=$(get_disk_name "$(basename "${device_name}")")
++		disk_name=$(get_disk_name "${device_name##*/}")
+ 		shopt -s extglob
+ 		part_num=${device_name##"${disk_name}"}
+ 		part_num=${part_num##"${part_num%%+([[:digit:]])}"}
+@@ -360,7 +360,7 @@
+ 		ekb_filename="$(find "${COMMON_IMAGES_DIR}/${INTERNAL}/ekb_db" -type f -name "*${device_sn}*" | head -1)"
+ 		sha1_chksum=$(sha1sum "${ekb_filename}" | cut -d\  -f 1)
+ 		file_size="$(stat --printf="%s" "${ekb_filename}")"
+-		file_name="ekb_db/$(basename "${ekb_filename}")"
++		file_name="ekb_db/${ekb_filename##*/}"
+ 	fi
+ 
+ 	# check if -k <target_partname> is specified
+@@ -562,10 +562,12 @@
+ 	if is_sparse_image "${file_image}"; then
+ 		if [ -n "${device}" ];then
+ 			local device_name
++			local partition
+ 			IFS='-' read -r -a attribute <<< "${attributes}"
+ 			entry_id="${attribute[2]}"
+-			device_name=$(basename "${device}")
+-			write_sparse_image "/dev/$(get_partition "${device_name}" "${entry_id}")" "${file_image}"
++			device_name="${device##*/}"
++			partition=$(get_partition "${device_name}" "${entry_id}") || return 1
++			write_sparse_image "/dev/${partition}" "${file_image}" || return 1
+ 			return 0
+ 		fi
+ 	fi
+@@ -574,10 +576,12 @@
+ 	if is_zstd_data "${file_image}"; then
+ 		if [ -n "${device}" ];then
+ 			local device_name
++			local partition
+ 			IFS='-' read -r -a attribute <<< "${attributes}"
+ 			entry_id="${attribute[2]}"
+-			device_name=$(basename "${device}")
+-			write_zstd_image "/dev/$(get_partition "${device_name}" "${entry_id}")" "${file_image}"
++			device_name="${device##*/}"
++			partition=$(get_partition "${device_name}" "${entry_id}") || return 1
++			write_zstd_image "/dev/${partition}" "${file_image}" || return 1
+ 			sync
+ 			return 0
+ 		fi
+@@ -742,6 +746,15 @@
+     base="${device##*/}"       # e.g., "sda" from "/dev/sda"
+     dir="${device%$base}"      # e.g., "/dev/" or ""
+ 
++    if [[ -z "$base" ]]; then
++        log_error "Cannot get partition for an empty device name"
++        return 1
++    fi
++    if [[ -n "$count" && ! "$count" =~ ^[0-9]+$ ]]; then
++        log_error "Invalid partition number: $count"
++        return 1
++    fi
++
+     # 1) If a partition was provided, extract the disk correctly
+     if   [[ "$base" =~ ^(nvme[0-9]+n[0-9]+)p([0-9]+)$ ]]; then
+         disk="${BASH_REMATCH[1]}"; sep="p"
+@@ -769,7 +782,7 @@
+     fi
+ 
+     # If count is empty or 0, return the disk itself
+-    if [[ -z "$count" || "$count" -eq 0 ]]; then
++    if [[ -z "$count" || "$count" =~ ^0+$ ]]; then
+         printf '%s%s\n' "$dir" "$disk"
+         return
+     fi
+@@ -782,34 +795,46 @@
+ 
+ function erase_partition()
+ {
+-	# sparse file
+-	if [ "${host_mode}" = "0" ]; then
+-		log_debug "blkdiscard -f ${1}"
+-		if ! blkdiscard -f "${1}"; then
+-			log_error "Cannot erase using blkdiscard. Write zero to partition ${1}"
+-			log_error "dd if=/dev/zero of=${1}"
+-			dd if=/dev/zero of="${1}" status=progress oflag=direct
+-		fi
+-	else
+-		local dev_name
+-		dev_name="/dev/$(get_dev_name_on_target "$(basename "${1}")")"
+-		if [ "${direct}" = 1 ]; then
+-			local option=()
+-			if blkdiscard -h | grep -q "\-f,"; then
+-				option=("-f")
+-			fi
+-			if ! blkdiscard "${option[@]}" "${dev_name}"; then
+-				log_error "Cannot erase using blkdiscard. Write zero to partition ${dev_name}"
+-				log_error "dd if=/dev/zero of=${dev_name}"
+-				dd if=/dev/zero of="${dev_name}" status=progress oflag=direct
+-			fi
+-		else
++	local dev_name="${1}"
++	local device_size
++	local option=("-f")
++	if [ "${host_mode}" != "0" ]; then
++		dev_name="/dev/$(get_dev_name_on_target "${1##*/}")" || return 1
++		if [ "${direct}" != 1 ]; then
+ 			run_commmand_on_target "${net}" \
+-			"if ! blkdiscard -f ${dev_name}; then
+-			echo Cannot erase before writing sparse image. Write zero to partition ${dev_name};
+-			dd if=/dev/zero of=${dev_name} status=progress oflag=direct; fi";
++			"if [ ! -b '${dev_name}' ]; then
++				echo 'Not a block device: ${dev_name}' >&2; exit 1;
++			fi;
++			if ! blkdiscard -f '${dev_name}'; then
++				device_size=\$(blockdev --getsize64 '${dev_name}') || exit 1;
++				case \$device_size in ''|*[!0-9]*|0) exit 1;; esac;
++				dd if=/dev/zero of='${dev_name}' bs=1M count=\$device_size \
++					iflag=count_bytes status=progress oflag=direct;
++			fi";
++			return "${?}"
++		fi
++		option=()
++		if blkdiscard -h | grep -q "\-f,"; then
++			option=("-f")
+ 		fi
+ 	fi
++
++	# Never let dd create a regular file in /dev when a device name is wrong.
++	if [ ! -b "${dev_name}" ]; then
++		log_error "Not a block device: ${dev_name}"
++		return 1
++	fi
++	log_debug "blkdiscard ${option[*]} ${dev_name}"
++	if ! blkdiscard "${option[@]}" "${dev_name}"; then
++		device_size=$(blockdev --getsize64 "${dev_name}") || return 1
++		if [[ ! "${device_size}" =~ ^[1-9][0-9]*$ ]]; then
++			log_error "Invalid block device size: ${device_size}"
++			return 1
++		fi
++		log_warning "Cannot erase using blkdiscard. Write zero to partition ${dev_name}"
++		dd if=/dev/zero of="${dev_name}" bs=1M count="${device_size}" \
++			iflag=count_bytes status=progress oflag=direct || return 1
++	fi
+ }
+ 
+ # function to write a sparse image to a dev node
+@@ -817,7 +842,6 @@
+ function write_sparse_image
+ {
+ 
+-	erase_partition "${1}"
+ 	local simg2img="nvsimg2img"
+ 
+ 	if ! command -v "${simg2img}" &> /dev/null; then
+@@ -833,9 +857,9 @@
+ 			exit 1
+ 		fi;
+ 	fi;
++	erase_partition "${1}" || return 1
+ 	echo "${simg2img} ${2} ${1}"
+-	"${simg2img}" "${2}" "${1}"
+-	chkerr "${simg2img} ${2} ${1} failed"
++	"${simg2img}" "${2}" "${1}" || return 1
+ 	sync
+ 	return
+ }
+@@ -845,14 +869,16 @@
+ # first argument is the destination dev node, second argument is the file to write
+ function write_zstd_image
+ {
+-	erase_partition "${1}"
+ 	if ! command -v "zstd" &> /dev/null; then
+ 		print_at_end "ERROR: cannot find zstd. You might have set up your flashing env wrong"
+ 		exit 1
+ 	fi;
++	erase_partition "${1}" || return 1
+ 	log_debug "zstd -T0 -d ${2} -c | dd of=${1} conv=sparse status=progress bs=4096"
+-	zstd -T0 -d "${2}" -c | dd of="${1}" conv=sparse status=progress bs=4096
+-	chkerr "zstd -T0 -d ${2} -c | dd of=${1} conv=sparse status=progress bs=4096 failed"
++	if ! zstd -T0 -d "${2}" -c | dd of="${1}" conv=sparse status=progress bs=4096; then
++		log_error "Failed to write ${2} to ${1}"
++		return 1
++	fi
+ 	sync
+ 	return
+ }
+@@ -1022,7 +1048,7 @@
+ 		return 1
+ 	fi
+ 
+-	if [ ! -e "${APP_partition}" ];then
++	if [ ! -b "${APP_partition}" ];then
+ 		log_error "${part_name} paritiion ${APP_partition} is not found !!!"
+ 		return 1
+ 	fi
+@@ -1036,12 +1062,12 @@
+ 	# Using magic to check if this is a sparse file
+ 	if is_sparse_image "${file_image}"; then
+ 		write_sparse_image "${APP_partition}" "${file_image}"
+-		return 0
++		return "${?}"
+ 	fi
+ 
+ 	if is_zstd_data "${file_image}" && [[ "${file_image}" == *.zst ]]; then
+ 		write_zstd_image "${APP_partition}" "${file_image}"
+-		return 0
++		return "${?}"
+ 	fi
+ 
+ 	# Check if this is a zstd compressed data
+--- a/tools/kernel_flash/l4t_initrd_flash.sh
++++ b/tools/kernel_flash/l4t_initrd_flash.sh
+@@ -232,9 +232,19 @@
+ 
+ parse_param "$@"
+ 
+-nargs=$#;
+-nargs=$((nargs-1));
+-target_board=${!nargs};
++if [ "${flash_only}" = "1" ]; then
++	# MFI flash-only commands need no positional board arguments.
++	target_board=$(awk 'NF >= 2 {print $(NF-1); exit}' \
++		"${L4T_INITRD_FLASH_DIR}/${INITRD_FLASHPARAM}")
++else
++	nargs=$#;
++	nargs=$((nargs-1));
++	target_board=${!nargs};
++fi
++if [ -z "${target_board}" ] || [ ! -f "${LINUX_BASE_DIR}/${target_board}.conf" ]; then
++	log_error "Cannot find board configuration for '${target_board}'"
++	exit 1
++fi
+ _UNIFIED_FLASH=$(LDK_DIR=${LINUX_BASE_DIR}; source "${LDK_DIR}/${target_board}.conf" > /dev/null;echo "${_UNIFIED_FLASH}")
+ 
+ if [[ "${SCRIPT_NAME}" = "l4t_create_flash_package.sh" ]]; then

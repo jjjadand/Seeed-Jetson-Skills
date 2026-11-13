@@ -1,0 +1,4 @@
+interface:
+  display_name: "Jetson ZED GMSL deb 适配"
+  short_description: "复现 JetPack 7.2/6.2 的 ZED GMSL 驱动构建、载板适配与验证"
+  default_prompt: "使用 $jetson-zed-gmsl-deb，为指定 Jetson 载板适配 ZED GMSL，并通过原 ZED 流程生成可追溯的 deb。"

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Jetson MFI 登录页标识"
+  short_description: "为 Jetson MFI 镜像添加醒目登录标识，修复 GDM 配置并验证归档"
+  default_prompt: "使用 $jetson-mfi-login-branding 为指定 Jetson MFI 工作目录添加单行图形登录页 tag，保留载板和分区配置并校验实际 APP 镜像。"

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Adapt AGX Orin Industrial"
+  short_description: "Adapt J50 carriers for AGX Orin Industrial modules"
+  default_prompt: "Use $jetson-adapt-agx-orin-industrial to add and validate P3701-0008 support for this Jetson carrier BSP."

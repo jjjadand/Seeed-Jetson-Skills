@@ -1,0 +1,49 @@
+diff --git a/source/nvidia-oot/drivers/media/i2c/stereolabs/max96712/sl_max96712.c b/source/nvidia-oot/drivers/media/i2c/stereolabs/max96712/sl_max96712.c
+index 2f1b048..426a2ab 100644
+--- a/source/nvidia-oot/drivers/media/i2c/stereolabs/max96712/sl_max96712.c
++++ b/source/nvidia-oot/drivers/media/i2c/stereolabs/max96712/sl_max96712.c
+@@ -1084,21 +1084,29 @@ static int sl_max96712_pipes_setup(struct max96712 *priv, struct sensor *sp,
+     u8 val, offset;
+     u16 pipe_reg;
+     u8 i;
++    u8 cameras_on_i2c_bus = 0;
+     u8 cam_pipping = cam_pipes[cam_model_id];
+ 	s8 cur_dts_cam_index = -1;
+ 
+-    //first camera of one i2c use X Y pipes 
+-    //second cam use Z U pipes
+-    //uses i2c_bus as conflicting values because is_second_cam used for IMU and pipping
+-    //comes from limitation from max9296
++    /* Alternate X/Y and Z/U for cameras sharing an I2C segment. The
++     * reference mux topology has at most two cameras per segment, whereas
++     * J501 connects all four links to one control channel. Shifting once
++     * per previous camera loses every pipe for the third/fourth cameras.
++     * Keep this selection consistent with the serializer's A/B tables.
++     */
+     for(i=0; i < priv->n_cam; i++)
+     {
+         if(sp->i2c_bus == priv->detected_sensors[i].i2c_bus)
+-        {
+-            sp->is_second_cam_from_i2c = true;
+-            cam_pipping = cam_pipping<<2;
+-        }
++            cameras_on_i2c_bus++;
+     }
++
++    sp->is_second_cam_from_i2c = cameras_on_i2c_bus & 1;
++    if (sp->is_second_cam_from_i2c)
++        cam_pipping <<= 2;
++
++    dev_info(&client->dev,
++             "GMSL #%u: serializer pipe mask=0x%02x, earlier cameras on I2C=%u\n",
++             link, cam_pipping, cameras_on_i2c_bus);
+             
+ 
+     dev_dbg(&client->dev, "%s: n_cam = %d ->  cam_pipping = 0x%x\n",
+@@ -2638,4 +2646,4 @@ module_exit(sl_max96712_exit);
+ MODULE_DESCRIPTION("IO Expander driver max96712");
+ MODULE_AUTHOR("STEREOLABS <support@stereolabs.com>");
+ MODULE_LICENSE("GPL v2");
+-MODULE_VERSION(DRV_STR_VERSION);
+\ No newline at end of file
++MODULE_VERSION(DRV_STR_VERSION);

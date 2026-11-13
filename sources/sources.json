@@ -1,0 +1,265 @@
+{
+  "retrieved_on": "2026-11-13",
+  "sources": [
+    {
+      "name": "Seeed Jetson Develop Tool bundled OpenClaw skills",
+      "repository": "https://github.com/Seeed-Projects/Seeed-Jetson-DevelopTool",
+      "revision": "2f815b19760afde0efd788938f7d19fa496f5103",
+      "paths": [
+        "skills/openclaw/"
+      ],
+      "license": "MIT; see upstream repository LICENSE"
+    },
+    {
+      "name": "NVIDIA Jetson BSP Skills",
+      "repository": "https://github.com/NVIDIA-AI-IOT/jetson-bsp-skills",
+      "revision": "fdfafef0416be1eb3852b68fc802a9752f33fb28",
+      "path": "host/nvidia/jetson-bsp-skills/",
+      "license": "CC-BY-4.0 for documentation and Apache-2.0 for source; see included LICENSE"
+    },
+    {
+      "name": "NVIDIA Jetson Device Skills",
+      "repository": "https://github.com/NVIDIA-AI-IOT/jetson-device-skills",
+      "revision": "9e7a633475f78e7f667443274f57e22de055bae2",
+      "path": "device/nvidia/jetson-device-skills/",
+      "license": "CC-BY-4.0 for documentation and Apache-2.0 for source; see included LICENSE"
+    },
+    {
+      "name": "Machine-local Codex Jetson skills",
+      "repository": "local Codex skill library",
+      "paths": [
+        "device/codex/guide-application-computer-vision-ai-nvr-with-jetson",
+        "device/codex/guide-application-computer-vision-jetson-nano-maskcam",
+        "device/codex/guide-application-computer-vision-security-scan",
+        "device/codex/guide-application-computer-vision-yolov8-trt-jetson",
+        "device/codex/guide-application-developer-tools-deciai-getting-started",
+        "device/codex/guide-application-developer-tools-hardhat",
+        "device/codex/guide-application-developer-tools-no-code-edge-ai-tool",
+        "device/codex/guide-application-developer-tools-vnc-for-recomputer",
+        "device/codex/guide-application-generative-ai-generative-ai-intro",
+        "device/codex/guide-application-multimodal-ai-local-chatbot-recomputer",
+        "device/codex/guide-application-multimodal-ai-speech-vlm",
+        "device/codex/guide-application-multimodal-ai-use-vlm-guard-warehouse",
+        "device/codex/guide-application-physical-ai-local-chatbot-recomputer",
+        "device/codex/guide-faq-create-backup-and-restore-on-recomputer",
+        "device/codex/guide-faq-deploy-ota-on-recomputer",
+        "device/codex/guide-faq-differences-of-l4t-between-seeed-and-nvidia",
+        "device/codex/guide-faq-enable-spi-interface-on-jetsonnano",
+        "device/codex/guide-faq-get-system-log-of-recomputer-j30-and-j40",
+        "device/codex/guide-faq-how-to-build-the-ko-module-for-seeed-jetson",
+        "device/codex/guide-faq-how-to-deal-the-issue-of-uuid-error",
+        "device/codex/guide-faq-how-to-encrypt-the-disk-for-jetson",
+        "device/codex/guide-faq-how-to-establish-the-ethercat-on-jetson",
+        "device/codex/guide-faq-how-to-upgrade-software-packages-for-jetson",
+        "device/codex/guide-faq-jetson-faq",
+        "device/codex/guide-faq-make-diy-bsp-for-jetson",
+        "device/codex/guide-faq-updating-jetpack-with-ota",
+        "device/codex/guide-faq-usb-timeout-during-flashing",
+        "device/codex/guide-faq-use-imx477-camera-with-a603",
+        "device/codex/jetson-app-dev",
+        "device/codex/jetson-bt-wifi-fix",
+        "device/codex/jetson-bugfix",
+        "device/codex/jetson-uefi-boot-fix",
+        "host/codex/jetson-adapt-agx-orin-industrial",
+        "host/codex/jetson-mfi-flash-fix",
+        "host/codex/jetson-mfi-login-branding",
+        "host/codex/jetson-recomputer-wiki-audit",
+        "host/codex/jetson-recomputer-wiki-refactor",
+        "host/codex/jetson-zed-gmsl-deb"
+      ],
+      "license": "Original per-skill licensing and authorship preserved where present"
+    }
+  ],
+  "codex_extras": [
+    {
+      "name": "jetson-guide-application-computer-vision-ai-nvr-with-jetson",
+      "path": "device/codex/guide-application-computer-vision-ai-nvr-with-jetson",
+      "source": "~/.codex/skills/jetson/guide-application-computer-vision-ai-nvr-with-jetson/SKILL.md"
+    },
+    {
+      "name": "jetson-guide-application-computer-vision-jetson-nano-maskcam",
+      "path": "device/codex/guide-application-computer-vision-jetson-nano-maskcam",
+      "source": "~/.codex/skills/jetson/guide-application-computer-vision-jetson-nano-maskcam/SKILL.md"
+    },
+    {
+      "name": "jetson-guide-application-computer-vision-security-scan",
+      "path": "device/codex/guide-application-computer-vision-security-scan",
+      "source": "~/.codex/skills/jetson/guide-application-computer-vision-security-scan/SKILL.md"
+    },
+    {
+      "name": "jetson-guide-application-computer-vision-yolov8-trt-jetson",
+      "path": "device/codex/guide-application-computer-vision-yolov8-trt-jetson",
+      "source": "~/.codex/skills/jetson/guide-application-computer-vision-yolov8-trt-jetson/SKILL.md"
+    },
+    {
+      "name": "jetson-guide-application-developer-tools-deciai-getting-started",
+      "path": "device/codex/guide-application-developer-tools-deciai-getting-started",
+      "source": "~/.codex/skills/jetson/guide-application-developer-tools-deciai-getting-started/SKILL.md"
+    },
+    {
+      "name": "jetson-guide-application-developer-tools-hardhat",
+      "path": "device/codex/guide-application-developer-tools-hardhat",
+      "source": "~/.codex/skills/jetson/guide-application-developer-tools-hardhat/SKILL.md"
+    },
+    {
+      "name": "jetson-guide-application-developer-tools-no-code-edge-ai-tool",
+      "path": "device/codex/guide-application-developer-tools-no-code-edge-ai-tool",
+      "source": "~/.codex/skills/jetson/guide-application-developer-tools-no-code-edge-ai-tool/SKILL.md"
+    },
+    {
+      "name": "jetson-guide-application-developer-tools-vnc-for-recomputer",
+      "path": "device/codex/guide-application-developer-tools-vnc-for-recomputer",
+      "source": "~/.codex/skills/jetson/guide-application-developer-tools-vnc-for-recomputer/SKILL.md"
+    },
+    {
+      "name": "jetson-guide-application-generative-ai-generative-ai-intro",
+      "path": "device/codex/guide-application-generative-ai-generative-ai-intro",
+      "source": "~/.codex/skills/jetson/guide-application-generative-ai-generative-ai-intro/SKILL.md"
+    },
+    {
+      "name": "jetson-guide-application-multimodal-ai-local-chatbot-recomputer",
+      "path": "device/codex/guide-application-multimodal-ai-local-chatbot-recomputer",
+      "source": "~/.codex/skills/jetson/guide-application-multimodal-ai-local-chatbot-recomputer/SKILL.md"
+    },
+    {
+      "name": "jetson-guide-application-multimodal-ai-speech-vlm",
+      "path": "device/codex/guide-application-multimodal-ai-speech-vlm",
+      "source": "~/.codex/skills/jetson/guide-application-multimodal-ai-speech-vlm/SKILL.md"
+    },
+    {
+      "name": "jetson-guide-application-multimodal-ai-use-vlm-guard-warehouse",
+      "path": "device/codex/guide-application-multimodal-ai-use-vlm-guard-warehouse",
+      "source": "~/.codex/skills/jetson/guide-application-multimodal-ai-use-vlm-guard-warehouse/SKILL.md"
+    },
+    {
+      "name": "jetson-guide-application-physical-ai-local-chatbot-recomputer",
+      "path": "device/codex/guide-application-physical-ai-local-chatbot-recomputer",
+      "source": "~/.codex/skills/jetson/guide-application-physical-ai-local-chatbot-recomputer/SKILL.md"
+    },
+    {
+      "name": "jetson-guide-faq-create-backup-and-restore-on-recomputer",
+      "path": "device/codex/guide-faq-create-backup-and-restore-on-recomputer",
+      "source": "~/.codex/skills/jetson/guide-faq-create-backup-and-restore-on-recomputer/SKILL.md"
+    },
+    {
+      "name": "jetson-guide-faq-deploy-ota-on-recomputer",
+      "path": "device/codex/guide-faq-deploy-ota-on-recomputer",
+      "source": "~/.codex/skills/jetson/guide-faq-deploy-ota-on-recomputer/SKILL.md"
+    },
+    {
+      "name": "jetson-guide-faq-differences-of-l4t-between-seeed-and-nvidia",
+      "path": "device/codex/guide-faq-differences-of-l4t-between-seeed-and-nvidia",
+      "source": "~/.codex/skills/jetson/guide-faq-differences-of-l4t-between-seeed-and-nvidia/SKILL.md"
+    },
+    {
+      "name": "jetson-guide-faq-enable-spi-interface-on-jetsonnano",
+      "path": "device/codex/guide-faq-enable-spi-interface-on-jetsonnano",
+      "source": "~/.codex/skills/jetson/guide-faq-enable-spi-interface-on-jetsonnano/SKILL.md"
+    },
+    {
+      "name": "jetson-guide-faq-get-system-log-of-recomputer-j30-and-j40",
+      "path": "device/codex/guide-faq-get-system-log-of-recomputer-j30-and-j40",
+      "source": "~/.codex/skills/jetson/guide-faq-get-system-log-of-recomputer-j30-and-j40/SKILL.md"
+    },
+    {
+      "name": "jetson-guide-faq-how-to-build-the-ko-module-for-seeed-jetson",
+      "path": "device/codex/guide-faq-how-to-build-the-ko-module-for-seeed-jetson",
+      "source": "~/.codex/skills/jetson/guide-faq-how-to-build-the-ko-module-for-seeed-jetson/SKILL.md"
+    },
+    {
+      "name": "jetson-guide-faq-how-to-deal-the-issue-of-uuid-error",
+      "path": "device/codex/guide-faq-how-to-deal-the-issue-of-uuid-error",
+      "source": "~/.codex/skills/jetson/guide-faq-how-to-deal-the-issue-of-uuid-error/SKILL.md"
+    },
+    {
+      "name": "jetson-guide-faq-how-to-encrypt-the-disk-for-jetson",
+      "path": "device/codex/guide-faq-how-to-encrypt-the-disk-for-jetson",
+      "source": "~/.codex/skills/jetson/guide-faq-how-to-encrypt-the-disk-for-jetson/SKILL.md"
+    },
+    {
+      "name": "jetson-guide-faq-how-to-establish-the-ethercat-on-jetson",
+      "path": "device/codex/guide-faq-how-to-establish-the-ethercat-on-jetson",
+      "source": "~/.codex/skills/jetson/guide-faq-how-to-establish-the-ethercat-on-jetson/SKILL.md"
+    },
+    {
+      "name": "jetson-guide-faq-how-to-upgrade-software-packages-for-jetson",
+      "path": "device/codex/guide-faq-how-to-upgrade-software-packages-for-jetson",
+      "source": "~/.codex/skills/jetson/guide-faq-how-to-upgrade-software-packages-for-jetson/SKILL.md"
+    },
+    {
+      "name": "jetson-guide-faq-jetson-faq",
+      "path": "device/codex/guide-faq-jetson-faq",
+      "source": "~/.codex/skills/jetson/guide-faq-jetson-faq/SKILL.md"
+    },
+    {
+      "name": "jetson-guide-faq-make-diy-bsp-for-jetson",
+      "path": "device/codex/guide-faq-make-diy-bsp-for-jetson",
+      "source": "~/.codex/skills/jetson/guide-faq-make-diy-bsp-for-jetson/SKILL.md"
+    },
+    {
+      "name": "jetson-guide-faq-updating-jetpack-with-ota",
+      "path": "device/codex/guide-faq-updating-jetpack-with-ota",
+      "source": "~/.codex/skills/jetson/guide-faq-updating-jetpack-with-ota/SKILL.md"
+    },
+    {
+      "name": "jetson-guide-faq-usb-timeout-during-flashing",
+      "path": "device/codex/guide-faq-usb-timeout-during-flashing",
+      "source": "~/.codex/skills/jetson/guide-faq-usb-timeout-during-flashing/SKILL.md"
+    },
+    {
+      "name": "jetson-guide-faq-use-imx477-camera-with-a603",
+      "path": "device/codex/guide-faq-use-imx477-camera-with-a603",
+      "source": "~/.codex/skills/jetson/guide-faq-use-imx477-camera-with-a603/SKILL.md"
+    },
+    {
+      "name": "jetson-app-dev",
+      "path": "device/codex/jetson-app-dev",
+      "source": "~/.codex/skills/jetson/jetson-app-dev/SKILL.md"
+    },
+    {
+      "name": "jetson-bt-wifi-fix",
+      "path": "device/codex/jetson-bt-wifi-fix",
+      "source": "~/.codex/skills/jetson/jetson-bt-wifi-fix/SKILL.md"
+    },
+    {
+      "name": "jetson-bugfix",
+      "path": "device/codex/jetson-bugfix",
+      "source": "~/.codex/skills/jetson/jetson-bugfix/SKILL.md"
+    },
+    {
+      "name": "jetson-uefi-boot-fix",
+      "path": "device/codex/jetson-uefi-boot-fix",
+      "source": "~/.codex/skills/jetson/jetson-uefi-boot-fix/SKILL.md"
+    },
+    {
+      "name": "jetson-adapt-agx-orin-industrial",
+      "path": "host/codex/jetson-adapt-agx-orin-industrial",
+      "source": "~/.codex/skills/jetson-bsp/jetson-adapt-agx-orin-industrial/SKILL.md"
+    },
+    {
+      "name": "jetson-mfi-flash-fix",
+      "path": "host/codex/jetson-mfi-flash-fix",
+      "source": "~/.codex/skills/jetson-mfi-flash-fix/SKILL.md"
+    },
+    {
+      "name": "jetson-mfi-login-branding",
+      "path": "host/codex/jetson-mfi-login-branding",
+      "source": "~/.codex/skills/jetson-mfi-login-branding/SKILL.md"
+    },
+    {
+      "name": "jetson-recomputer-wiki-audit",
+      "path": "host/codex/jetson-recomputer-wiki-audit",
+      "source": "~/.codex/skills/jetson-recomputer-wiki-audit/SKILL.md"
+    },
+    {
+      "name": "jetson-recomputer-wiki-refactor",
+      "path": "host/codex/jetson-recomputer-wiki-refactor",
+      "source": "~/.codex/skills/jetson-recomputer-wiki-refactor/SKILL.md"
+    },
+    {
+      "name": "jetson-zed-gmsl-deb",
+      "path": "host/codex/jetson-zed-gmsl-deb",
+      "source": "~/.codex/skills/jetson-zed-gmsl-deb/SKILL.md"
+    }
+  ]
+}

@@ -1,0 +1,42 @@
+{
+  "record_version": 1,
+  "carrier": {"name": null, "revision": null, "soc": null, "module_sku": null, "extension_board": null},
+  "software": {"jetpack": null, "l4t": null, "kernel_release": null, "rt": null, "image_commit": null, "sdk": null},
+  "sources": {
+    "camera_repository": null,
+    "camera_commit": null,
+    "packaging_repository": null,
+    "packaging_commit": null,
+    "patches": [],
+    "dirty_diff_sha256": null
+  },
+  "abi": {
+    "camera_provider_path": null,
+    "camera_provider_sha256": null,
+    "matching_header_sha256": null,
+    "symbol_tables": [],
+    "type_layout_verified": null,
+    "direct_crc_report": null,
+    "dependency_crc_report": null
+  },
+  "links": [
+    {"physical_port": null, "i2c_controller": null, "runtime_bus": null, "mux_branch": null,
+     "deserializer": null, "gmsl_link": null, "serializer_physical_address": null,
+     "serializer_host_alias": null, "sensor_aliases": [], "imu_aliases": [],
+     "source_pipes": [], "destination_pipes": [], "csi_output": null,
+     "soc_csi_brick": null, "vi_stream": null, "virtual_channels": [],
+     "lanes": null, "lane_polarity": null, "clock_hz": null,
+     "power_gpio": null, "reset_gpio": null, "pwdn_gpio": null, "evidence": []}
+  ],
+  "build": {"toolchain": null, "sysroot": null, "commands_file": null, "tuning_format": null,
+    "modules_built": [], "modules_reused": [], "external_dependencies": []},
+  "package": {"name": null, "version": null, "sha256": null,
+    "builder": "package.sh -> repack/debian/rules -> dpkg-buildpackage",
+    "manifest": null, "supported_skus": [], "overlay_merge_results": []},
+  "hardware_validation": {
+    "installed": null, "boot_id": null, "reboot_tested": null,
+    "video_enumerated": null, "single_camera_tests": [], "multi_camera_tests": [],
+    "imu_tested": null, "studio_gui_tested": null, "reopen_tested": null,
+    "continuous_stream_seconds": null, "first_error": null, "evidence_files": []
+  }
+}
